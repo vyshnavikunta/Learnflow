@@ -1,36 +1,54 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class EcommercePlatform {
+
+    public static final Map<String, String> userCredentials = new HashMap<>();
+    public static final Map<String, Product> productCatalog = initializeProductCatalog();
+    public static final Map<String, Integer> shoppingCart = new HashMap<>();
+
     public static void main(String[] args) {
-        // Sample Product Data
-        Map<String, Product> productCatalog = initializeProductCatalog();
+        Scanner scanner = new Scanner(System.in);
 
-        // User's Shopping Cart
-        Map<String, Integer> shoppingCart = new HashMap<>();
+        // New User Registration
+        registerNewUser(scanner);
 
-        // Display Product Options
-        displayProductOptions(productCatalog);
+        authenticateUser(scanner);
+        
 
-        // Choose Products and Quantity
-        addToCart(shoppingCart, productCatalog);
+        while (true) {
+          
 
-        // Generate Bill
-        generateBill(shoppingCart, productCatalog);
-    }
+           // Sample Product Data
+           displayProductOptions(productCatalog);
 
-    static class Product {
-        String name;
-        double price;
+           // User's Shopping Cart
+           addToCart(shoppingCart, productCatalog);
 
-        public Product(String name, double price) {
-            this.name = name;
-            this.price = price;
+           // Generate Bill
+           generateBill(shoppingCart, productCatalog);
+
+           // Modify Products (Change quantity, remove, or add more)
+           modifyProducts(shoppingCart, productCatalog);
+
+           // Generate Bill Again
+           generateBill(shoppingCart, productCatalog);
+
+           // Enter Billing Address
+           enterBillingAddress(scanner);
+
+           // Ask the user if they want to continue shopping
+           System.out.print("Do you want to continue shopping? (yes/no): ");
+           String continueShopping = scanner.nextLine().trim().toLowerCase();
+           if (!continueShopping.equals("yes")) {
+               break;
+           }
         }
+        System.out.println("Thank you for shopping with us!");
     }
 
-    static Map<String, Product> initializeProductCatalog() {
+  
+
+    public static Map<String, Product> initializeProductCatalog() {
         Map<String, Product> productCatalog = new HashMap<>();
         productCatalog.put("1", new Product("Product A", 10.99));
         productCatalog.put("2", new Product("Product B", 5.99));
@@ -40,20 +58,21 @@ public class EcommercePlatform {
         return productCatalog;
     }
 
-    static void displayProductOptions(Map<String, Product> productCatalog) {
+    public static void displayProductOptions(Map<String, Product> productCatalog) {
         System.out.println("Product Options:");
         for (Map.Entry<String, Product> entry : productCatalog.entrySet()) {
             System.out.println(entry.getKey() + ". " + entry.getValue().name + " - $" + entry.getValue().price);
         }
     }
 
-    static void addToCart(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
+    public static void addToCart(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.print("Enter product number (or 'done' to finish and 'bill' to get the price): ");
             String userInput = scanner.nextLine().trim();
 
             if (userInput.equalsIgnoreCase("done") || userInput.equalsIgnoreCase("bill")) {
+                generateBill(shoppingCart, productCatalog);
                 break;
             }
 
@@ -78,7 +97,7 @@ public class EcommercePlatform {
         }
     }
 
-    static void generateBill(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
+    public static void generateBill(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
         System.out.println("\nGenerated Bill:");
         double totalAmount = 0;
 
@@ -98,4 +117,162 @@ public class EcommercePlatform {
             System.out.println("\nTotal Price in Cart: $" + totalAmount);
         }
     }
+
+    public static void modifyProducts(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\nModify Products Menu:");
+            System.out.println("1. Change quantity");
+            System.out.println("2. Remove product");
+            System.out.println("3. Add more products");
+            System.out.println("4. Generate Bill");
+            System.out.println("5. Continue to billing");
+            System.out.print("Enter your choice: ");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // consume the newline
+
+            switch (choice) {
+                case 1:
+                    changeQuantity(shoppingCart, productCatalog);
+                    break;
+                case 2:
+                    removeProduct(shoppingCart, productCatalog);
+                    break;
+                case 3:
+                    addToCart(shoppingCart, productCatalog);
+                    break;
+                case 4:
+                    generateBill(shoppingCart, productCatalog);
+                    break;
+                case 5:
+                    enterBillingAddress(scanner);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please enter a number between 1 and 5.");
+            }
+        }
+    }
+
+    public static void changeQuantity(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter product number to change quantity: ");
+        String productNumber = scanner.nextLine().trim();
+
+        if (shoppingCart.containsKey(productNumber)) {
+            System.out.print("Enter new quantity: ");
+            int newQuantity = scanner.nextInt();
+            scanner.nextLine(); // consume the newline
+
+            if (newQuantity > 0) {
+                shoppingCart.put(productNumber, newQuantity);
+                System.out.println("Quantity updated successfully.");
+            } else {
+                System.out.println("Quantity must be greater than 0. No changes were made.");
+            }
+        } else {
+            System.out.println("Product not found in the cart.");
+        }
+    }
+
+    public static void removeProduct(Map<String, Integer> shoppingCart, Map<String, Product> productCatalog) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter product number to remove: ");
+        String productNumber = scanner.nextLine().trim();
+
+        if (shoppingCart.containsKey(productNumber)) {
+            shoppingCart.remove(productNumber);
+            System.out.println("Product removed successfully.");
+        } else {
+            System.out.println("Product not found in the cart.");
+        }
+    }
+
+
+    public static class Product {
+        String name;
+        double price;
+    
+        public Product(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+    }
+
+    public static void enterBillingAddress(Scanner scanner) {
+        System.out.print("\nDo you want to proceed to billing? (yes/no): ");
+        String proceedToBilling = scanner.nextLine().trim().toLowerCase();
+    
+        if (proceedToBilling.equals("yes")) {
+            processPayment(scanner);
+        } else {
+            System.out.println("Billing process canceled. Continue shopping.");
+        }
+    }
+
+    static void processPayment(Scanner scanner) {
+        System.out.print("Enter your credit card number: ");
+        String creditCardNumber = scanner.nextLine().trim();
+    
+        // Validate the credit card number (this is a basic example, you should use a secure validation process)
+        if (isValidCreditCard(creditCardNumber)) {
+            System.out.println("Processing payment...");
+            System.out.println("Payment successful! Thank you for your purchase.");
+        } else {
+            System.out.println("Invalid credit card number. Payment failed.");
+        }
+    }
+    
+    static boolean isValidCreditCard(String creditCardNumber) {
+        // In a real-world scenario, use a secure method to validate the credit card number
+        // This is a basic example and should not be used for actual transactions
+        return creditCardNumber.matches("\\d{16}");
+    }
+    
+
+    public static void registerNewUser(Scanner scanner) {
+        System.out.println("Welcome to the Ecommerce Platform! Please register to continue.");
+        System.out.print("Enter a new username: ");
+        String newUsername = scanner.nextLine().trim();
+
+        while (userCredentials.containsKey(newUsername)) {
+            System.out.println("Username already exists. Please choose a different username.");
+            System.out.print("Enter a new username: ");
+            newUsername = scanner.nextLine().trim();
+        }
+
+        System.out.print("Enter a password: ");
+        String newPassword = scanner.nextLine().trim();
+
+        userCredentials.put(newUsername, newPassword);
+        System.out.println("Registration successful!\n");
+    }
+
+    public static void authenticateUser(Scanner scanner) {
+        System.out.println("Please log in to continue.");
+        int attempts = 3;
+
+        while (attempts > 0) {
+            System.out.print("Enter username: ");
+            String enteredUsername = scanner.nextLine().trim();
+            System.out.print("Enter password: ");
+            String enteredPassword = scanner.nextLine().trim();
+
+            if (userCredentials.containsKey(enteredUsername) && userCredentials.get(enteredUsername).equals(enteredPassword)) {
+                System.out.println("Login successful!\n");
+                return;
+            } else {
+                attempts--;
+                System.out.println("Incorrect username or password. Attempts left: " + attempts);
+            }
+        }
+
+        System.out.println("Too many unsuccessful attempts. Exiting program.");
+        System.exit(0);
+    }
+
 }
+
